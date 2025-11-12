@@ -46,3 +46,15 @@ body{background:var(--bg)}
 .item-title{flex:1}
 .item.done .item-title{text-decoration:line-through;color:var(--muted)}
 .item .icon-btn{background:transparent;border:0;cursor:pointer;font-size:16px}
+/* Evitar overflow no header do card */
+.subject-head{display:flex;align-items:center;gap:12px}
+.title-wrap{flex:1;min-width:0}                /* permite ellipsis em flex */
+.subject-name{margin:0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.subject-meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Evitar overflow na lista de itens */
+.item-title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Quebrar palavras MUITO longas (sem espaços) como salvaguarda */
+.subject-name,.item-title{word-break:break-word}
+
