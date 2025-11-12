@@ -57,4 +57,10 @@ body{background:var(--bg)}
 
 /* Quebrar palavras MUITO longas (sem espaços) como salvaguarda */
 .subject-name,.item-title{word-break:break-word}
+/* espaçador para empurrar os botões à direita */
+.footer .spacer{flex:1}
+
+/* botão de ação "perigosa" */
+.btn.danger{background:#fee2e2;color:#991b1b}
+.btn.danger:hover{filter:brightness(.98)}
 
