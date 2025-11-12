@@ -44,7 +44,7 @@ function renderSubjects(){
     tpl.querySelector(".accent").style.background = sub.color;
     const nameEl = tpl.querySelector(".subject-name");
     nameEl.textContent = sub.name;
-    nameEl.title = sub.name; // tooltip com nome completo
+    nameEl.title = sub.name; // tooltip
 
     // counters
     const total = sub.items?.length || 0;
@@ -57,11 +57,8 @@ function renderSubjects(){
     tpl.querySelector(".bar span").style.width = pct + "%";
     if(total>0 && done===total) tpl.querySelector(".done-badge").classList.remove("hidden");
 
-    // actions
+    // actions de card
     tpl.querySelector(".trash").onclick = ()=>removeSubject(sub.id);
-    tpl.querySelector(".settings").onclick = ()=>{
-      alert("Você pode ajustar metas/descrições aqui futuramente. (Opcional)");
-    };
 
     // add item
     tpl.querySelector(".add-item").onclick = ()=>{
@@ -73,7 +70,7 @@ function renderSubjects(){
       renderSubjects();
     };
 
-    // list items
+    // lista de itens
     const list = tpl.querySelector(".items");
     (sub.items||[]).forEach(it=>{
       const li = document.createElement("li");
@@ -89,7 +86,7 @@ function renderSubjects(){
       const span = document.createElement("span");
       span.className = "item-title";
       span.textContent = it.title;
-      span.title = it.title; // tooltip com item completo
+      span.title = it.title;
 
       const del = document.createElement("button");
       del.className = "icon-btn";
@@ -100,6 +97,18 @@ function renderSubjects(){
       li.append(chk, span, del);
       list.appendChild(li);
     });
+
+    // novas ações: desmarcar tudo / resetar
+    tpl.querySelector(".uncheck-all").onclick = ()=>{
+      uncheckAll(sub.id);
+      renderSubjects();
+    };
+    tpl.querySelector(".reset-subject").onclick = ()=>{
+      if(confirm("Resetar matéria? Isso APAGARÁ todas as submatérias.")){
+        resetSubject(sub.id);
+        renderSubjects();
+      }
+    };
 
     grid.appendChild(tpl);
   });
@@ -141,5 +150,20 @@ function removeItem(subjectId, itemId){
   const s = state.find(x=>x.id===subjectId);
   if(!s || !s.items) return;
   s.items = s.items.filter(x=>x.id!==itemId);
+  save();
+}
+
+// NEW: bulk actions
+function uncheckAll(subjectId){
+  const s = state.find(x=>x.id===subjectId);
+  if(!s || !s.items) return;
+  s.items.forEach(i=>i.done=false);
+  save();
+}
+
+function resetSubject(subjectId){
+  const s = state.find(x=>x.id===subjectId);
+  if(!s) return;
+  s.items = [];
   save();
 }
