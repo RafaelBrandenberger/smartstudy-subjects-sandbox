@@ -21,7 +21,9 @@ function renderSwatches(){
   box.innerHTML = "";
   COLORS.forEach((c,i)=>{
     const id = "c"+i;
-    const input = Object.assign(document.createElement("input"),{type:"radio",name:"color",id,checked:i===0});
+    const input = Object.assign(document.createElement("input"), {
+      type:"radio", name:"color", id, checked:i===0
+    });
     input.addEventListener("change",()=>selectedColor=c);
     const lab = document.createElement("label");
     lab.style.background = c;
@@ -40,7 +42,9 @@ function renderSubjects(){
 
     // header
     tpl.querySelector(".accent").style.background = sub.color;
-    tpl.querySelector(".subject-name").textContent = sub.name;
+    const nameEl = tpl.querySelector(".subject-name");
+    nameEl.textContent = sub.name;
+    nameEl.title = sub.name; // tooltip com nome completo
 
     // counters
     const total = sub.items?.length || 0;
@@ -85,6 +89,7 @@ function renderSubjects(){
       const span = document.createElement("span");
       span.className = "item-title";
       span.textContent = it.title;
+      span.title = it.title; // tooltip com item completo
 
       const del = document.createElement("button");
       del.className = "icon-btn";
@@ -124,12 +129,14 @@ function addItem(subjectId, title){
   s.items.push({ id: crypto.randomUUID(), title, done:false });
   save();
 }
+
 function toggleItem(subjectId, itemId){
   const s = state.find(x=>x.id===subjectId);
   if(!s || !s.items) return;
   const it = s.items.find(x=>x.id===itemId);
   if(it){ it.done = !it.done; save(); }
 }
+
 function removeItem(subjectId, itemId){
   const s = state.find(x=>x.id===subjectId);
   if(!s || !s.items) return;
