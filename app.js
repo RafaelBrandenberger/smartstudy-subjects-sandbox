@@ -19,15 +19,22 @@ function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function renderSwatches(){
   const box = document.getElementById("colorSwatches");
   box.innerHTML = "";
-  COLORS.forEach((c,i)=>{
-    const id = "c"+i;
-    const input = Object.assign(document.createElement("input"), {
-      type:"radio", name:"color", id, checked:i===0
-    });
-    input.addEventListener("change",()=>selectedColor=c);
-    const lab = document.createElement("label");
-    lab.style.background = c;
-    box.append(input, lab);
+  COLORS.forEach((c, i) => {
+    const id = "color-" + i;
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = "color";
+    input.id = id;
+    input.value = c;
+    if (i === 0) { input.checked = true; selectedColor = c; }
+    input.addEventListener("change", () => { selectedColor = c; });
+
+    const label = document.createElement("label");
+    label.setAttribute("for", id);   // <-- associa o clique ao input
+    label.style.background = c;
+
+    box.append(input, label);        // mantém a ordem p/ CSS: input:checked + label
   });
 }
 
