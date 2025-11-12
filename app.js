@@ -9,13 +9,13 @@ let selectedColor = COLORS[0];
 // INIT
 renderSwatches();
 renderSubjects();
-document.getElementById("subject-form").addEventListener("submit", onAdd);
+document.getElementById("subject-form").addEventListener("submit", onAddSubject);
 
-// HELPERS STORAGE
+// STORAGE
 function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch{ return []; } }
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 
-// UI
+// UI: swatches
 function renderSwatches(){
   const box = document.getElementById("colorSwatches");
   box.innerHTML = "";
@@ -29,6 +29,7 @@ function renderSwatches(){
   });
 }
 
+// SUBJECTS RENDER
 function renderSubjects(){
   const grid = document.getElementById("subjectsGrid");
   grid.innerHTML = "";
@@ -36,40 +37,102 @@ function renderSubjects(){
     const tpl = document.getElementById("subjectCardTpl").content.cloneNode(true);
     const card = tpl.querySelector(".subject-card");
     card.dataset.id = sub.id;
+
+    // header
     tpl.querySelector(".accent").style.background = sub.color;
     tpl.querySelector(".subject-name").textContent = sub.name;
-    tpl.querySelector(".total").textContent = sub.total ?? 10;
-    tpl.querySelector(".done").textContent = sub.done ?? 0;
-    const pct = Math.min(100, Math.round(((sub.done||0)/(sub.total||10))*100));
-    tpl.querySelector(".bar span").style.width = pct + "%";
-    if((sub.done||0) >= (sub.total||10)) tpl.querySelector(".done-badge").classList.remove("hidden");
 
+    // counters
+    const total = sub.items?.length || 0;
+    const done = sub.items?.filter(i=>i.done).length || 0;
+    tpl.querySelector(".total").textContent = total;
+    tpl.querySelector(".done").textContent = done;
+
+    // progress
+    const pct = total === 0 ? 0 : Math.round((done/total)*100);
+    tpl.querySelector(".bar span").style.width = pct + "%";
+    if(total>0 && done===total) tpl.querySelector(".done-badge").classList.remove("hidden");
+
+    // actions
     tpl.querySelector(".trash").onclick = ()=>removeSubject(sub.id);
-    tpl.querySelector(".add-progress").onclick = (e)=>{
-      const input = card.querySelector("input[type=number]");
-      const add = parseInt(input.value||"0",10);
-      if(!Number.isFinite(add) || add<=0) return;
-      sub.done = (sub.done||0)+add;
-      save(); renderSubjects();
-    };
     tpl.querySelector(".settings").onclick = ()=>{
-      const newTotal = parseInt(prompt("Defina o total de conteúdos-alvo:", sub.total ?? 10),10);
-      if(Number.isFinite(newTotal) && newTotal>0){ sub.total = newTotal; save(); renderSubjects(); }
+      alert("Você pode ajustar metas/descrições aqui futuramente. (Opcional)");
     };
+
+    // add item
+    tpl.querySelector(".add-item").onclick = ()=>{
+      const input = card.querySelector(".sub-input");
+      const title = (input.value||"").trim();
+      if(!title) return;
+      addItem(sub.id, title);
+      input.value = "";
+      renderSubjects();
+    };
+
+    // list items
+    const list = tpl.querySelector(".items");
+    (sub.items||[]).forEach(it=>{
+      const li = document.createElement("li");
+      li.className = "item" + (it.done ? " done" : "");
+      li.dataset.itemId = it.id;
+
+      const chk = document.createElement("button");
+      chk.className = "icon-btn";
+      chk.title = it.done ? "Marcar como não concluído" : "Marcar como concluído";
+      chk.textContent = it.done ? "✅" : "☐";
+      chk.onclick = ()=>{ toggleItem(sub.id, it.id); renderSubjects(); };
+
+      const span = document.createElement("span");
+      span.className = "item-title";
+      span.textContent = it.title;
+
+      const del = document.createElement("button");
+      del.className = "icon-btn";
+      del.title = "Remover";
+      del.textContent = "🗑️";
+      del.onclick = ()=>{ removeItem(sub.id, it.id); renderSubjects(); };
+
+      li.append(chk, span, del);
+      list.appendChild(li);
+    });
+
     grid.appendChild(tpl);
   });
 }
 
-function onAdd(e){
+// SUBJECTS CRUD
+function onAddSubject(e){
   e.preventDefault();
   const name = document.getElementById("subjectName").value.trim();
   if(!name) return;
-  state.push({ id: crypto.randomUUID(), name, color: selectedColor, total: 10, done: 0 });
+  state.push({ id: crypto.randomUUID(), name, color: selectedColor, items: [] });
   save();
-  e.target.reset(); renderSubjects();
+  e.target.reset();
+  renderSubjects();
 }
 
 function removeSubject(id){
   state = state.filter(s=>s.id!==id);
   save(); renderSubjects();
+}
+
+// ITEMS CRUD
+function addItem(subjectId, title){
+  const s = state.find(x=>x.id===subjectId);
+  if(!s) return;
+  s.items = s.items || [];
+  s.items.push({ id: crypto.randomUUID(), title, done:false });
+  save();
+}
+function toggleItem(subjectId, itemId){
+  const s = state.find(x=>x.id===subjectId);
+  if(!s || !s.items) return;
+  const it = s.items.find(x=>x.id===itemId);
+  if(it){ it.done = !it.done; save(); }
+}
+function removeItem(subjectId, itemId){
+  const s = state.find(x=>x.id===subjectId);
+  if(!s || !s.items) return;
+  s.items = s.items.filter(x=>x.id!==itemId);
+  save();
 }
